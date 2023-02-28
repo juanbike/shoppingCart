@@ -1,0 +1,389 @@
+Creacion de carrito de compras
+https://www.youtube.com/watch?v=Rdq1gbvk0uE&list=PL4vWncexIMYvaYdepQvyryGBhIHU-Sd04&index=4
+
+ Definición de la estructura gráfica del carrito de compras
+
+carrito> ng g c components/shsopping-cart
+
+	<div>
+		<p class="title">Mi carrito</p>
+		<app-shopping-cart-items ></app-shopping-cart-items>
+
+		<p class="total"><span class="total-label">Total:</span></p>
+		<button>Finalizar Pedido</button>
+	</div>
+
+
+
+
+carrito> ng g c components/shsopping-cart-items
+
+<img src="/assets/items/headphones.jpg" alt="" class="thumbnail" />
+<div class="info">
+    <span></span>
+    <span class="info-price"></span>
+</div>
+
+<button > <img src="/assets/close.svg" alt="Eliminar Articulo" /></button>
+
+
+DEFINICION LOGICA DEL CARRITO DE COMPRAS
+-----------------------------------------
+	Creamos la interfaz que defina las propiedes de los items de la factura
+	
+	carrito> ng g i components/interface/cart-items
+	
+	export interface CartItems {
+		imageUrl:String;
+		name:string;
+		price:number
+	}
+
+IMPORTAMOS EN LA CLASE shsopping-cart-items.TS LA INTERFACE Y DEFINIMOS UN ARREGLO DEL TIPO DE LA INTERFACE CON ALGUNOS DATOS
+
+
+	SHSOPPING-CART-ITEMS.TS
+	-----------------------
+	
+		import { Component} from '@angular/core';
+		import { CartItems} from '../interface/cart-items'
+
+		@Component({
+		  selector: 'app-shopping-cart-items',
+		  templateUrl: './shopping-cart-items.component.html',
+		  styleUrls: ['./shopping-cart-items.component.css']
+		})
+		export class ShoppingCartItemsComponent {
+		@Input() cartItems!: CartItems
+
+		****************************** solo un  objeto *************************
+		  cartItems : CartItems = {
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  }
+
+
+
+
+		*/
+
+		// ****************************** Varios Objetos ************************************
+
+		/*
+		cartItems : CartItems[] = [{
+		  imageUrl: 'headphones.jpg',
+		  name: 'Auriculares',
+		  price: 5989
+		},
+		{
+		  imageUrl: 'keyborad.jpg',
+		  name: 'Teclado',
+		  price: 123
+		},
+		{
+		  imageUrl: 'monitor.jpg',
+		  name: 'Monitor',
+		  price: 456
+		}
+		]
+
+		
+		}
+
+
+LEVANTAMOS EL SERVIDOR Y MOSTRAMOS
+
+
+
+HACER QUE LOS ITEMS DEL CARRITO DE COMPRAS SEA DINAMICO
+-------------------------------------------------------
+	Pasamos los datos de los ítems del carrito de compras al componente padre.
+	--------------------------------------------------------------------------
+	
+		shopping-cart.component.ts
+		--------------------------
+	
+		import { Component } from '@angular/core';
+		import { CartItems } from '../interface/cart-items';
+
+		@Component({
+		  selector: 'app-shopping-cart',
+		  templateUrl: './shopping-cart.component.html',
+		  styleUrls: ['./shopping-cart.component.css']
+		})
+		export class ShoppingCartComponent {
+		  cartItems : CartItems[] = [{
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  },
+		  {
+			imageUrl: 'keyboard.jpg',
+			name: 'Teclado',
+			price: 123
+		  },
+		  {
+			imageUrl: 'monitor.jpg',
+			name: 'Monitor',
+			price: 456
+		  }
+		  ]
+
+
+	 En su vista vinculamos los datos de la clase, para visualizar los mismos en la vista
+	 ------------------------------------------------------------------------------------
+	 
+	 shopping-cart.component.html
+	 ----------------------------
+		 <div>
+			<p class="title">Mi carrito</p>
+			<app-shopping-cart-items [cartItems]=cartItems[0] </app-shopping-cart-items>
+
+			<p class="total"><span class="total-label">Total:</span>{{ total }}</p>
+			<button>Finalizar Pedido</button>
+		</div>
+		
+	ERROR
+	-----
+
+		Pero Angular dice que “cartItem” no es una propiedad conocida en el componente padre; es decir, no se puede ENLAZAR la interfaz
+		[cartItem] declarada en la clase del componente padre con su vista, y por lo tanto no se muestra.
+		
+	SOLUCION
+	--------
+	
+		Definimos un comunicacion Hijo-Padre: Inyectamos la interfaz los datos del hijo al padre
+		
+		shopping-cart-items.component.ts
+		--------------------------------
+
+			import { Component, EventEmitter, Input, Output } from '@angular/core';
+			import { CartItems} from '../interface/cart-items'
+
+			@Component({
+			  selector: 'app-shopping-cart-items',
+			  templateUrl: './shopping-cart-items.component.html',
+			  styleUrls: ['./shopping-cart-items.component.css']
+			})
+			export class ShoppingCartItemsComponent {
+			@Input() cartItems!: CartItems
+
+			
+
+			}
+			
+LEVANTAMOS EL SERVIDOR Y MOSTRAMOS
+
+
+El siguiente problema que tenemos es que el número de elementos del carrito de compras es algo variable. Necesitamos crear un item del carrito por cada elemento
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ en el arreglo de los datos. (13:15)
+ -----------------------------------
+ 
+	shopping-cart.component.ts
+	--------------------------
+	<div>
+		<p class="title">Mi carrito</p>
+		<app-shopping-cart-items *ngFor="let item of cartItems" [cartItems]="item" ></app-shopping-cart-items>
+
+		<p class="total"><span class="total-label">Total:</span>{{ total }}</p>
+		<button>Finalizar Pedido</button>
+	</div>
+ 
+ 
+ DEFINICIÓN DE LA LÓGICA QUE NOS PERMITE ELIMINAR LOS ARTÍCULOS DEL CARRITO DE COMPRAS (14:18)
+ --------------------------------------------------------------------------------------------
+ 
+	Paso 1-1: Detectamos el evento click en la vista del componente hijo
+	---------------------------------------------------------------------
+	shopping-cart-items.component.html
+	--------------------------------
+		<img src="/assets/items/{{cartItems.imageUrl}}" alt="{{ cartItems.name}}" class="thumbnail" />
+		<div class="info">
+			<span>{{ cartItems.name}}</span>
+			<span class="info-price">{{ cartItems.price}}</span>
+		</div>
+
+		<button (click)="onDeleteClick()"> <img src="/assets/close.svg" alt="Eliminar Articulo" /></button>
+
+ 
+	Paso 1-2: Definimos el método en la clase del componente hijo
+	-------------------------------------------------------------
+		Comunicamos al componente padre que es que tiene la lista de artículos que el usuario quiere borrar uno.
+	
+		shopping-cart-items.component.ts
+		--------------------------------
+		import { Component, EventEmitter, Input, Output } from '@angular/core';
+		import { CartItems} from '../interface/cart-items'
+
+		@Component({
+		  selector: 'app-shopping-cart-items',
+		  templateUrl: './shopping-cart-items.component.html',
+		  styleUrls: ['./shopping-cart-items.component.css']
+		})
+		export class ShoppingCartItemsComponent {
+		@Input() cartItems!: CartItems
+
+		// Eliminar un item en el componente padre
+		@Output() cartItemDelete = new EventEmitter();
+		/*
+
+		
+		onDeleteClick(){
+		  this.cartItemDelete.emit();
+		}
+
+		}
+		
+	Paso 1.3: En la clase del padre recibimos “cartItemDelete” Creamos un método en el padre para que borre el artículo en la factura (15:30)
+	--------------------------------------------------------------------------------------------------------------------------------
+		Dentro del padre añadimos el evento cartItemDelete y añadimos una llamada a un método deleteItem(item); le pasamos el ítem del *ngFor
+		-------------------------------------------------------------------------------------------------------------------------------------
+		
+		
+		shopping-cart.component.html
+		----------------------------
+		<div>
+			<p class="title">Mi carrito</p>
+			<app-shopping-cart-items *ngFor="let item of cartItems" [cartItems]="item" (cartItemDelete)="deleteItem(item
+			)"></app-shopping-cart-items>
+
+			<p class="total"><span class="total-label">Total:</span>{{ total }}</p>
+			<button>Finalizar Pedido</button>
+		</div>
+
+	
+	Paso 1.4: Definimos el metodo deleteItem(item) en la clase del que elimina del arreglo el item
+	----------------------------------------------------------------------------------------------
+	
+		shopping-cart.component.item
+		----------------------------
+		
+		import { Component } from '@angular/core';
+		import { CartItems } from '../interface/cart-items';
+
+		@Component({
+		  selector: 'app-shopping-cart',
+		  templateUrl: './shopping-cart.component.html',
+		  styleUrls: ['./shopping-cart.component.css']
+		})
+		export class ShoppingCartComponent {
+		  cartItems : CartItems[] = [{
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  },
+		  {
+			imageUrl: 'keyboard.jpg',
+			name: 'Teclado',
+			price: 123
+		  },
+		  {
+			imageUrl: 'monitor.jpg',
+			name: 'Monitor',
+			price: 456
+		  }
+		  ]
+
+
+
+		  deleteItem(itemToDelete: CartItems){
+			console.log(itemToDelete);
+			this.cartItems = this.cartItems.filter(item => item !== itemToDelete)
+		  }
+
+	 
+		}
+
+					
+	LEVANTAMOS EL SERVIDOR Y ELIMINAMOS UN ITEM
+
+
+DEFINIMOS LA LÓGICA PARA MOSTRAMOS LA SUMA TOTAL DE LA FACTURA; DEFINIMOS UN MÉTODO GETTER()
+--------------------------------------------------------------------------------------------
+
+	shopping-cart.component.html
+	----------------------------
+	<div>
+		<p class="title">Mi carrito</p>
+		<app-shopping-cart-items *ngFor="let item of cartItems" [cartItems]="item" (cartItemDelete)="deleteItem(item
+		)"></app-shopping-cart-items>
+
+		<p class="total"><span class="total-label">Total:</span>{{ total }}</p>
+		<button>Finalizar Pedido</button>
+	</div>
+	
+	
+	shopping-cart.component.ts
+	--------------------------
+	import { Component } from '@angular/core';
+		import { CartItems } from '../interface/cart-items';
+
+		@Component({
+		  selector: 'app-shopping-cart',
+		  templateUrl: './shopping-cart.component.html',
+		  styleUrls: ['./shopping-cart.component.css']
+		})
+		export class ShoppingCartComponent {
+		  cartItems : CartItems[] = [{
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  },
+		  {
+			imageUrl: 'keyboard.jpg',
+			name: 'Teclado',
+			price: 123
+		  },
+		  {
+			imageUrl: 'monitor.jpg',
+			name: 'Monitor',
+			price: 456
+		  }
+		  ]
+
+
+		  deleteItem(itemToDelete: CartItems){
+			console.log(itemToDelete);
+			this.cartItems = this.cartItems.filter(item => item !== itemToDelete)
+		  }
+
+
+		  get total():number{
+			return this.cartItems.reduce((aac,{price}) => aac += price, 0)
+		  }
+		}
+
+
+Creación del servicio para la lógica del negocio (01:10)
+https://www.youtube.com/watch?v=MVR4VmbiEzo&list=PL4vWncexIMYvaYdepQvyryGBhIHU-Sd04&index=6
+
+
+carrito> ng g s components/service/shopping-cart
+
+	shopping-cart.service.ts
+	------------------------
+	
+	import { Injectable } from '@angular/core';
+
+	@Injectable({
+	  providedIn: 'root'
+	})
+	export class ShoppingCartService {
+
+	  constructor() { }
+	}
+	
+TRASLADAMOS LA LÓGICA Y LOS DATOS DE PRUEBA DE LA FACTURA AL SERVICIO RECIÉN CREADO(6:20)
+-----------------------------------------------------------------------------------------
+
+	Al componente padre importamos el servicio y la interfaz de los ítems de la factura
+	
+
+	
+
+			
+
+
+	
