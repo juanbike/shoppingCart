@@ -13,7 +13,13 @@ export class ShoppingCartComponent implements OnInit {
 
   constructor(private shoppingcartservice: ShoppingCartService){}
   
-  cartItems: CartItems[] = this.shoppingcartservice.items;
+  //cartItems: CartItems[] = this.shoppingcartservice.items;
+
+  // convertimos la propiedad carItems en un getter par eliminar un item del carrito
+
+  get cartItems(): CartItems[]{
+   return this.shoppingcartservice.items;
+  }
 
   get total(){
     return this.shoppingcartservice.total;

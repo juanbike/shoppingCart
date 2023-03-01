@@ -40,4 +40,9 @@ export class ShoppingCartService {
      return this.items.length
   }
 
+  addItem(item: CartItems){
+    this.items = [...this.items, item]
+
+  }
+
 }
