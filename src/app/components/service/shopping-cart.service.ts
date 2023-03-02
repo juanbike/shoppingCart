@@ -7,7 +7,9 @@ export class ShoppingCartService {
 
   constructor() {}
 
-  items: CartItems[] = [{
+  items: CartItems[] = [
+    /*
+    {
     imageUrl: 'headphones.jpg',
     name: 'Auriculares',
     price: 5989
@@ -22,6 +24,7 @@ export class ShoppingCartService {
     name: 'Monitor',
     price: 456
   }
+  */
   ]
 
 

@@ -1,13 +1,13 @@
 <div class="img-container">
-    <img src="/assets/items/headphones.jpg" alt="auriculares" />
+    <img src="/assets/items/{{ produtcs.imageUrl}}" alt="auriculares" />
   </div>
   <div class="info">
     <span
-      ><strong>Auriculares</strong>
+      ><strong>{{ produtcs.name}}</strong>
     </span>
-    <span>24 &euro;</span>
+    <span>{{ produtcs.price}} &euro;</span>
   </div>
-  <button  title="Añadir al Carrito">
+  <button (click)="addToCart()"  title="Añadir al Carrito">
     <img src="/assets/add_white.svg" alt="+" />
   </button>
 

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { ShoppingCartService } from '../service/shopping-cart.service';
 import { Product } from '../catalog/interface/product';
-import { mapProductoToCartItem } from '../helpers/map-product-to-cart-item.helpers';
+import { mapProductToCartItem } from '../helpers/map-product-to-cart-item.helpers';
 @Component({
   selector: 'app-catalog-product',
   templateUrl: './catalog-product.component.html',
@@ -17,7 +17,7 @@ export class CatalogProductComponent {
 
 addToCart(){
 
-  const cartItem = mapProductoToCartItem(this.produtcs);
+  const cartItem = mapProductToCartItem(this.produtcs);
   this.shoppingCartService.addItem(cartItem)
 }
 

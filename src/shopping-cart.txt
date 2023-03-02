@@ -843,11 +843,296 @@ DEFINIMOS LA SECCIÒN LÒGICA DEL CATÀLOGO
 		imageUrl: string;
 		name: string;
 		price: number
+		
 	}
 	
+	PASO-3: EN EL SERVICIO DEL CATÁLOGO AGREGAMOS LOS PRODUCTOS PARA LOS MISMOS
+	---------------------------------------------------------------------------
 	
+	import { Injectable } from '@angular/core';
+	import { Product } from '../interface/product';
+	@Injectable({
+	  providedIn: 'root'
+	})
+	export class CatalogService {
+
+	  constructor() { }
+
+	  
+	  readonly products: Product[] = [{
+		imageUrl: 'headphones.jpg',
+		name: 'Auriculares',
+		price: 5989
+	  },
+	  {
+		imageUrl: 'keyboard.jpg',
+		name: 'Teclado',
+		price: 123
+	  },
+	  {
+		imageUrl: 'monitor.jpg',
+		name: 'Monitor',
+		price: 456
+	  }
+	  ]
+
+
+	}
+
+	PASO-4: AGREGAMOS UN MÉTODO EN EL SERVICIO SHOPPING-CART QUE NOS PERMITA AÑADIR UN ÍTEM AL CARRITO
+	--------------------------------------------------------------------------------------------------
+	shopping-cart.service.ts
+	------------------------
+		import { Injectable } from '@angular/core';
+		import { CartItems } from '../interface/cart-items';
+		@Injectable({
+		  providedIn: 'root'
+		})
+		export class ShoppingCartService {
+
+		  constructor() {}
+
+		  items: CartItems[] = [{
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  },
+		  {
+			imageUrl: 'keyboard.jpg',
+			name: 'Teclado',
+			price: 123
+		  },
+		  {
+			imageUrl: 'monitor.jpg',
+			name: 'Monitor',
+			price: 456
+		  }
+		  ]
+
+
+
+		  deleteItem(itemToDelete: CartItems){
+			console.log(itemToDelete);
+			return this.items = this.items.filter(item => item !== itemToDelete)
+		  }
+
+
+		  get total():number{
+			return this.items.reduce((aac,{price}) => aac += price, 0)
+		  }
+		  
+		  get itemsCount():number{
+			 return this.items.length
+		  }
+
+		  addItem(item: CartItems){
+			this.items = [...this.items, item]
+
+		  }
+
+		}
+
+	PASO-5: EN LA CLASE CATALOG-PRODUCT.COMPONENT.TS  INYECTAMOS EL SERVICIO Y LLAMAMOS AL MÉTODO EN EL SERVICIO PASANDO EL OBJETO CARTITEM
+	---------------------------------------------------------------------------------------------------------------------------------------
+		catalog-product.component.ts
+		----------------------------
+			import { Component, Input } from '@angular/core';
+			import { ShoppingCartService } from '../service/shopping-cart.service';
+			import { Product } from '../catalog/interface/product';
+			import { mapProductToCartItem } from '../helpers/map-product-to-cart-item.helpers';
+			@Component({
+			  selector: 'app-catalog-product',
+			  templateUrl: './catalog-product.component.html',
+			  styleUrls: ['./catalog-product.component.css']
+			})
+			export class CatalogProductComponent {
+
+			  @Input() produtcs!: Product
+			  constructor( private shoppingCartService:ShoppingCartService){}
+
+
+			// Creamos una funcion que agrega un producto del catalogo al carrito de compras
+
+			addToCart(){
+
+			  const cartItem = mapProductToCartItem(this.produtcs);
+			  this.shoppingCartService.addItem(cartItem)
+			}
+
+			/*
+			Antes de llamar el método en el servicio tenemos que convertir el objeto [products] en un objeto [cart Item]
+			*/
+
+
+			}
+			
+	PASO-6: HAY UN PROBLEMA EL MÈTODO QUE AGREGA EL PRODUCTO AL CARRITO ES DE TIPO [CARTITEM] Y EN EL COMPONENTE ES DE TIPO [PRODUCT]
+	---------------------------------------------------------------------------------------------------------------------------------
+			
+		
+		map-product-to-cart-item.helpers.ts
+		-----------------------------------
+		import { CartItems } from "../interface/cart-items";
+		import { Product } from "../catalog/interface/product";
+
+		export function mapProductToCartItem(product: Product): CartItems{
+			const { imageUrl, name, price }  = product;
+			
+			return { imageUrl, name, price  }
+		}
+
+	PASO-7: ANTES DE LLAMAR EL MÉTODO EN EL SERVICIO TENEMOS QUE CONVERTIR EL OBJETO [PRODUCTS] EN UN OBJETO [CART ITEM]
+	--------------------------------------------------------------------------------------------------------------------
 	
+		catalog-product.component.ts
+		----------------------------
+			import { Component, Input } from '@angular/core';
+			import { ShoppingCartService } from '../service/shopping-cart.service';
+			import { Product } from '../catalog/interface/product';
+			import { mapProductToCartItem } from '../helpers/map-product-to-cart-item.helpers';
+			@Component({
+			  selector: 'app-catalog-product',
+			  templateUrl: './catalog-product.component.html',
+			  styleUrls: ['./catalog-product.component.css']
+			})
+			export class CatalogProductComponent {
+
+			  @Input() produtcs!: Product
+			  constructor( private shoppingCartService:ShoppingCartService){}
+
+
+			// Creamos una funcion que agrega un producto del catalogo al carrito de compras
+
+			addToCart(){
+
+			  const cartItem = mapProductToCartItem(this.produtcs);
+			  this.shoppingCartService.addItem(cartItem)
+			}
+
+			/*
+			Antes de llamar el método en el servicio tenemos que convertir el objeto [products] en un objeto [cart Item]
+			*/
+
+
+			}
+
+			
+			
+	PASO-8: AHORA VINCULAMOS EN LA VISTA DEL COMPONENTE EL EVENTO CLICK CON LA FUNCIÓN QUE LLAMA AL MÉTODO EN EL SERVICIO
+	-------------------------------------------------------------------------------------------------------------
 	
+	catalog-product.component.html
+	------------------------------
+		<div class="img-container">
+		<img src="/assets/items/{{ produtcs.imageUrl}}" alt="auriculares" />
+	  </div>
+	  <div class="info">
+		<span
+		  ><strong>{{ produtcs.name}}</strong>
+		</span>
+		<span>{{ produtcs.price}} &euro;</span>
+	  </div>
+	  <button (click)="addToCart()"  title="Añadir al Carrito">
+		<img src="/assets/add_white.svg" alt="+" />
+	  </button>
+	  
+	  
+	PASO-9: QUITAMOS LOS VALORES INICIALES EN LA CLASE ShoppingCartService.ts
+	-------------------------------------------------------------------------
+	
+		shopping-cart.service.ts
+		------------------------
+		import { Injectable } from '@angular/core';
+		import { CartItems } from '../interface/cart-items';
+		@Injectable({
+		  providedIn: 'root'
+		})
+		export class ShoppingCartService {
+
+		  constructor() {}
+
+		  items: CartItems[] = [
+		  /*
+		  {
+			imageUrl: 'headphones.jpg',
+			name: 'Auriculares',
+			price: 5989
+		  },
+		  {
+			imageUrl: 'keyboard.jpg',
+			name: 'Teclado',
+			price: 123
+		  },
+		  {
+			imageUrl: 'monitor.jpg',
+			name: 'Monitor',
+			price: 456
+		  }
+		  */
+		  ]
+
+
+
+		  deleteItem(itemToDelete: CartItems){
+			console.log(itemToDelete);
+			return this.items = this.items.filter(item => item !== itemToDelete)
+		  }
+
+
+		  get total():number{
+			return this.items.reduce((aac,{price}) => aac += price, 0)
+		  }
+		  
+		  get itemsCount():number{
+			 return this.items.length
+		  }
+
+		  addItem(item: CartItems){
+			this.items = [...this.items, item]
+
+		  }
+
+		}
+
+
+		PASO-10: los movimos al  servicio del catálogo
+		-----------------------------------------------
+		
+		catalog.service.ts
+		------------------
+			import { Injectable } from '@angular/core';
+			import { Product } from '../interface/product';
+			@Injectable({
+			  providedIn: 'root'
+			})
+			export class CatalogService {
+
+			  constructor() { }
+
+			  
+			  readonly products: Product[] = [{
+				imageUrl: 'headphones.jpg',
+				name: 'Auriculares',
+				price: 5989
+			  },
+			  {
+				imageUrl: 'keyboard.jpg',
+				name: 'Teclado',
+				price: 123
+			  },
+			  {
+				imageUrl: 'monitor.jpg',
+				name: 'Monitor',
+				price: 456
+			  }
+			  ]
+
+
+			}
+
+
+	  
+
 	
 	
 	
